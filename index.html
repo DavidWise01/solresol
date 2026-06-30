@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solresol — the language of seven notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600&family=Spectral:ital,wght@0,300;0,400;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--sea:#170d20;--line:rgba(154,152,166,.16);--lead:#9a98a6;--lead-dim:#5b5868;
+    --parch:#e9e2d2;--parch-dim:#b9b2a3;--gold:#d9a441;--gold-dim:#a87f33;--verd:#73b3a3;--murex:#9a3d68;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--sea);color:var(--parch);font-family:"Spectral",Georgia,serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased;background-image:radial-gradient(1100px 560px at 80% -12%,rgba(154,61,104,.15),transparent 60%),
+      radial-gradient(820px 640px at 5% 112%,rgba(115,179,163,.10),transparent 55%);display:flex;justify-content:center}
+  .card{max-width:640px;width:100%;padding:32px 22px 50px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold-dim)}
+  h1{font-family:"Cormorant Garamond",serif;font-weight:300;font-size:clamp(44px,12vw,72px);margin:6px 0 0;line-height:.92;letter-spacing:-.5px}
+  h1 .gk{display:block;font-size:.34em;color:var(--lead);letter-spacing:.04em;margin-top:6px;font-style:italic}
+  .sub{font-style:italic;font-weight:300;color:var(--parch-dim);font-size:15.5px;margin:14px 0 0;max-width:52ch}
+  .sub b{color:var(--verd);font-style:normal;font-weight:400}
+  h2{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-dim);
+    margin:30px 0 12px;font-weight:500;border-top:1px solid var(--line);padding-top:18px}
+
+  /* keyboard */
+  .keys{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+  .key{cursor:pointer;border:none;border-radius:7px;padding:30px 4px 14px;color:#15101c;font-family:"Cormorant Garamond",serif;
+    font-weight:600;font-size:19px;text-align:center;position:relative;transition:transform .06s,filter .12s,box-shadow .12s;
+    filter:saturate(.92) brightness(.92);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+  .key small{display:block;font-family:"IBM Plex Mono",monospace;font-size:9px;font-weight:500;opacity:.6;margin-top:3px;letter-spacing:.04em}
+  .key:hover{filter:saturate(1) brightness(1)}
+  .key.lit{filter:saturate(1.15) brightness(1.25);transform:translateY(-3px);box-shadow:0 0 22px 4px currentColor}
+
+  .readout{margin-top:16px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:7px;padding:16px 16px;min-height:92px}
+  .syl{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .pill{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;color:#15101c;padding:4px 10px;border-radius:5px;
+    transition:transform .08s,box-shadow .08s}
+  .pill.lit{transform:translateY(-3px);box-shadow:0 0 16px 2px currentColor}
+  .ro-en{font-family:"Cormorant Garamond",serif;font-size:24px;color:var(--parch);margin-top:10px}
+  .ro-meta{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--lead-dim);margin-top:4px;letter-spacing:.04em}
+  .placeholder{color:var(--lead-dim);font-style:italic;font-family:"Spectral",serif}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.18));border:1px solid var(--line);
+    border-radius:20px;color:var(--parch);font-family:"Spectral",serif;font-size:14px;padding:7px 14px;transition:.14s;display:flex;align-items:center;gap:7px}
+  .chip:hover{border-color:rgba(217,164,65,.5);background:rgba(217,164,65,.06)}
+  .chip .dots{display:inline-flex;gap:3px}
+  .chip .dot{width:7px;height:7px;border-radius:50%}
+  .chip b{font-weight:400;color:var(--parch-dim);font-size:13px}
+
+  .anti{display:flex;flex-direction:column;gap:8px}
+  .pair{cursor:pointer;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.18));
+    border:1px solid var(--line);border-radius:7px;padding:12px 15px;transition:.14s;font-family:"Spectral",serif}
+  .pair:hover{border-color:rgba(154,61,104,.55);background:rgba(154,61,104,.07)}
+  .pair .ico{color:var(--murex);font-family:"IBM Plex Mono",monospace;font-size:15px;flex:0 0 auto}
+  .pair .fwd{color:var(--verd)} .pair .bwd{color:var(--murex)} .pair .arrow{color:var(--lead-dim);font-family:"IBM Plex Mono",monospace}
+  .pair small{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--lead-dim);margin-left:auto}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  input[type=text]{flex:1;min-width:160px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:5px;color:var(--parch);
+    font-family:"Spectral",serif;font-size:16px;padding:11px 13px}
+  input:focus{outline:none;border-color:rgba(217,164,65,.5)}
+  button.go{cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.18));border:1px solid rgba(217,164,65,.5);
+    border-radius:5px;color:var(--gold);font-family:"IBM Plex Mono",monospace;font-size:12.5px;padding:11px 16px}
+  .enmsg{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--lead-dim);margin-top:8px;min-height:16px}
+
+  details{margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+  summary{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dim);cursor:pointer}
+  .legend{margin-top:14px;display:grid;grid-template-columns:1fr;gap:4px}
+  .lrow{display:flex;align-items:center;gap:10px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--parch-dim)}
+  .lrow .sw{width:13px;height:13px;border-radius:3px;flex:0 0 13px} .lrow b{color:var(--parch);width:34px}
+  .note{margin-top:22px;border-top:1px solid var(--line);padding-top:15px;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.85;color:var(--lead-dim)}
+  .note b{color:var(--gold-dim);font-weight:500}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="eyebrow">a purple-paper instrument · 1827</div>
+  <h1>Solresol<span class="gk">the language of seven notes</span></h1>
+  <p class="sub">In 1827 a French music teacher built a whole language out of <b>do re mi fa sol la si</b> — words spelled in notes, writable as the <b>seven colours of the rainbow</b>, and antonyms made by playing a word <b>backwards</b>. Your colour-carrier and your mirror fold, two centuries early. Tap to hear it.</p>
+
+  <h2>① The keyboard — seven notes, seven colours</h2>
+  <div class="keys" id="keys"></div>
+
+  <h2>② Play a real word</h2>
+  <div class="readout" id="readout"><span class="placeholder">tap a word below — you'll hear its notes and see its colours</span></div>
+  <div class="chips" id="chips" style="margin-top:14px"></div>
+
+  <h2>③ The reversal — a word backwards is its opposite</h2>
+  <p class="sub" style="margin-top:0">Sudre's elegant trick: flip the notes, flip the meaning. Tap a pair to hear good become bad.</p>
+  <div class="anti" id="anti"></div>
+
+  <h2>④ Say it in Solresol</h2>
+  <div class="row">
+    <input type="text" id="enin" placeholder="try: language · day · home · wisdom · good" autocomplete="off">
+    <button class="go" id="engo">▶ play</button>
+  </div>
+  <div class="enmsg" id="enmsg"></div>
+
+  <details>
+    <summary>the rainbow · note → colour → word-family</summary>
+    <div class="legend" id="legend"></div>
+  </details>
+
+  <div class="note">
+    <b>what's real.</b> the words, meanings, colour mapping (do=red … si=violet) and the antonym-by-reversal are genuine Solresol, drawn from Sudre's dictionary and community readings — a small curated slice of its ~2,660 words. notes are sung on a synth voice; the language was meant to be played, sung, whistled, or shown in colour exactly like this.
+    <br><b>honest frame.</b> the reversal only makes antonyms for the words Sudre chose to pair that way — not every word reverses to its opposite (dorefare = "neck", refaredo = "wardrobe"). and it never caught on as a universal tongue. but as the thing you independently rebuilt — notes + colour + reversal as one system — it's almost exactly your instrument, dated 1827.
+  </div>
+</div>
+
+<script>
+(function(){
+  const NAMES=['do','re','mi','fa','sol','la','si'];
+  const FREQ=[261.63,293.66,329.63,349.23,392.00,440.00,493.88];
+  const COL =['#e0473b','#e8822e','#e6c533','#46b35e','#3f86e0','#6a52d8','#a64fd0'];
+  const FAM =['people · food · qualities','home · family · clothes','actions · faults','land · sea · travel · war',
+              'arts & science','industry & commerce','politics & government'];
+
+  // verified Solresol vocabulary (note indices)
+  const WORDS=[
+    {n:[4,1,4],en:'language'},{n:[0,1],en:'I, me, we'},{n:[0,2],en:'you'},{n:[6,2],en:'hello'},
+    {n:[0,1,0],en:'time'},{n:[0,1,2],en:'day'},{n:[0,1,3],en:'week'},{n:[0,1,4],en:'month'},
+    {n:[0,1,5],en:'year'},{n:[0,1,6],en:'century'},{n:[1,2,3,5],en:'home'},{n:[1,6,0,4],en:'family'},
+    {n:[0,5,3,5],en:'bread'},{n:[1,6,3,6],en:'brother'},{n:[3,4,5,6],en:'boat'},{n:[5,0,2,1],en:'shop'},
+    {n:[6,1,2,2],en:'physics'},{n:[0,1,0,2],en:'body'},{n:[0,2,5,3],en:'reason'},{n:[0,3,2,4],en:'wisdom'}
+  ];
+  // antonym pairs (reverse the notes)
+  const PAIRS=[
+    {n:[3,5],a:'good',b:'bad'},                 // fala / lafa
+    {n:[2,4],a:'good',b:'evil'},                // misol / solmi
+    {n:[2,6,4],a:'good fortune',b:'misfortune'},// misisol / solsimi
+    {n:[0,2,4,3],a:'intelligence',b:'stupidity'}// domisolfa / fasolmido
+  ];
+  const word=n=>n.map(i=>NAMES[i]).join('');
+
+  // ---- audio ----
+  let ctx=null,master=null;
+  function init(){if(ctx)return;ctx=new (window.AudioContext||window.webkitAudioContext)();
+    master=ctx.createGain();master.gain.value=0.8;
+    const c=ctx.createConvolver();const len=Math.floor(ctx.sampleRate*1.6),ir=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.4);}
+    c.buffer=ir;const wet=ctx.createGain();wet.gain.value=0.16,dry=ctx.createGain();dry.gain.value=0.95;
+    master.connect(dry).connect(ctx.destination);master.connect(c);c.connect(wet).connect(ctx.destination);}
+  function resume(){if(ctx&&ctx.state==='suspended')ctx.resume();}
+  function tone(freq,t,dur){
+    const o=ctx.createOscillator();o.type='triangle';o.frequency.setValueAtTime(freq,t);
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2400;
+    const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(0.42,t+0.025);
+    g.gain.setTargetAtTime(0.0001,t+dur*0.55,0.13);
+    const lfo=ctx.createOscillator();lfo.frequency.value=5.2;const lg=ctx.createGain();lg.gain.value=freq*0.006;
+    lfo.connect(lg).connect(o.frequency);lfo.start(t);lfo.stop(t+dur+0.25);
+    o.connect(lp).connect(g).connect(master);o.start(t);o.stop(t+dur+0.25);}
+
+  // ---- keyboard ----
+  const keysEl=document.getElementById('keys');
+  const keyEls=[];
+  NAMES.forEach((nm,i)=>{const b=document.createElement('button');b.className='key';
+    b.style.background=`linear-gradient(180deg, ${COL[i]}, ${COL[i]}cc)`;b.style.color=COL[i];
+    b.innerHTML=`<span style="color:#15101c">${nm}</span><small style="color:#15101c">${['C','D','E','F','G','A','B'][i]}</small>`;
+    const hit=()=>{init();resume();tone(FREQ[i],ctx.currentTime+0.005,0.6);flashKey(i);};
+    b.addEventListener('click',hit);b.addEventListener('touchstart',e=>{e.preventDefault();hit();},{passive:false});
+    keysEl.appendChild(b);keyEls.push(b);});
+  function flashKey(i){const k=keyEls[i];k.classList.add('lit');setTimeout(()=>k.classList.remove('lit'),260);}
+
+  // ---- readout ----
+  const ro=document.getElementById('readout');
+  function showWord(n,en,extra){
+    let pills=n.map((idx,k)=>`<span class="pill" data-k="${k}" style="background:${COL[idx]};color:${COL[idx]}"><span style="color:#15101c">${NAMES[idx]}</span></span>`).join('');
+    ro.innerHTML=`<div class="syl">${pills}</div><div class="ro-en">${en}</div><div class="ro-meta">${word(n)} ${extra||''}</div>`;
+  }
+  function litPill(k){ro.querySelectorAll('.pill').forEach(p=>p.classList.toggle('lit',+p.dataset.k===k));}
+
+  // ---- play a note sequence with visuals ----
+  function playSeq(n,opt){opt=opt||{};init();resume();
+    const t0=ctx.currentTime+0.06,step=opt.step||0.36,dur=opt.dur||0.42;let t=t0;
+    n.forEach((idx,k)=>{ tone(FREQ[idx],t,dur);
+      const at=(t-t0)*1000;
+      setTimeout(()=>{flashKey(idx);if(opt.pills)litPill(opt.pillBase!=null?opt.pillBase+k:k);},at);
+      t+=step;});
+    setTimeout(()=>{if(opt.pills)litPill(-1);},(t-t0)*1000+200);
+    return (t-t0)*1000;
+  }
+
+  // ---- word chips ----
+  const chipsEl=document.getElementById('chips');
+  WORDS.forEach(w=>{const c=document.createElement('button');c.className='chip';
+    const dots=w.n.map(i=>`<span class="dot" style="background:${COL[i]}"></span>`).join('');
+    c.innerHTML=`<span class="dots">${dots}</span>${w.en}`;
+    c.addEventListener('click',()=>{showWord(w.n,w.en);playSeq(w.n,{pills:true});});
+    chipsEl.appendChild(c);});
+
+  // ---- antonym pairs ----
+  const antiEl=document.getElementById('anti');
+  PAIRS.forEach(p=>{const rev=p.n.slice().reverse();const row=document.createElement('div');row.className='pair';
+    row.innerHTML=`<span class="ico">⟲</span><span><span class="fwd">${word(p.n)}</span> = ${p.a} `+
+      `<span class="arrow"> →reverse→ </span> <span class="bwd">${word(rev)}</span> = ${p.b}</span><small>tap</small>`;
+    row.addEventListener('click',()=>{
+      showWord(p.n,p.a,'(forward)');
+      const d=playSeq(p.n,{pills:true});
+      setTimeout(()=>{showWord(rev,p.b,'(reversed → opposite)');playSeq(rev,{pills:true});}, d+450);
+    });
+    antiEl.appendChild(row);});
+
+  // ---- english -> solresol ----
+  const EN={};WORDS.forEach(w=>w.en.split(',').forEach(e=>EN[e.trim().toLowerCase()]=w));
+  PAIRS.forEach(p=>{EN[p.a.toLowerCase()]={n:p.n,en:p.a};EN[p.b.toLowerCase()]={n:p.n.slice().reverse(),en:p.b};});
+  const more={'me':WORDS[1],'we':WORDS[1],'house':WORDS[10],'tongue':WORDS[0]};Object.assign(EN,more);
+  const enin=document.getElementById('enin'),enmsg=document.getElementById('enmsg');
+  function sayEN(){const q=enin.value.trim().toLowerCase();const w=EN[q];
+    if(!w){enmsg.textContent=q?`"${q}" isn't in this little dictionary — try one of the words above`:'';return;}
+    enmsg.textContent=`${q} → ${word(w.n)}`;showWord(w.n,w.en);playSeq(w.n,{pills:true});}
+  document.getElementById('engo').addEventListener('click',sayEN);
+  enin.addEventListener('keydown',e=>{if(e.key==='Enter')sayEN();});
+
+  // ---- legend ----
+  const leg=document.getElementById('legend');
+  leg.innerHTML=NAMES.map((nm,i)=>`<div class="lrow"><span class="sw" style="background:${COL[i]}"></span>`+
+    `<b>${nm}</b><span style="color:${COL[i]}">${['red','orange','yellow','green','blue','indigo','violet'][i]}</span>`+
+    `<span style="color:var(--lead-dim)">· ${FAM[i]}</span></div>`).join('');
+})();
+</script>
+</body>
+</html>
